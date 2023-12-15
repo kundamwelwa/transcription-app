@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Text Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="logo.png">
+        <h1>TRANSCRIPTION APP | ZAMBIA UNIVERSITY COLLEGE OF TECHNOLOGY</h1>
+    </header>
+    <main>
+        <button id="start-btn">Start Listening</button>
+        <button id="stop-btn" style="display:none;">Stop Listening</button>
+        <button id="open-transcription-btn">Open Transcriptions</button>
+
+        <p id="transcript">Transcription: </p>
+        
+        <div class="main-content">
+            <div class="main-content-item">
+                <img src="Text_to_speech_2.png" alt="Speech to Text image one">
+                <p>
+                    The core innovation for this project lies in optimising existing speech-to-text algorithms to accurately interpret the niche vocabulary and spontaneous dialogues common
+                    in academic discourses. By training the models on diverse educational speech data, the transcription-app renders precise automated transcripts tailored
+                    to academic subjects and terminology. As teachers give lessons or lead learner discussions, the app listens in and immediately generates corresponding 
+                    text reports viewable by learners and teachers alike. This relieves manual note-taking burdens while still providing text references of lessons and talking 
+                    points.
+                </p>
+              </div>
+          </div>
+    </main>
+    <footer>
+        <p>© 2023 TRANSCRIPTION APP | AGNESS SANGA :2110516, ANGELA MAZILA :2110523, EMELDA CHILUFYA: 2110524 AND GETRUDE MULENGA: 2110621</p>
+    </footer>
+
+    <script>
+        function addPunctuation(transcript) {
+            // Basic rule: add a period after each sentence
+            var sentences = transcript.split('.');
+            var punctuatedText = sentences.map(sentence => sentence.trim() + '.').join(' ');
+
+            return punctuatedText;
+        }
+    </script>
+
+    <script>
+        var startBtn = document.getElementById('start-btn');
+        var stopBtn = document.getElementById('stop-btn');
+        var transcriptParagraph = document.getElementById('transcript');
+        var recognition;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function() {
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline';
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event);
+            };
+
+            recognition.onend = function() {
+                startBtn.style.display = 'inline';
+                stopBtn.style.display = 'none';
+            };
+
+            recognition.onresult = function(event) {
+                var interim_transcript = '';
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        transcriptParagraph.textContent = event.results[i][0].transcript;
+                        sendToServer(event.results[i][0].transcript);
+                    } else {
+                        interim_transcript += event.results[i][0].transcript;
+                        transcriptParagraph.textContent = interim_transcript;
+                    }
+                }
+            };
+
+            startBtn.onclick = function() {
+                recognition.start();
+            };
+
+            stopBtn.onclick = function() {
+                recognition.stop();
+            };
+
+            document.getElementById('open-transcription-btn').onclick = function() {
+                window.open('transcriptions.txt', '_blank');
+            };
+        } else {
+            alert("Web Speech API is not supported in this browser.");
+        }
+
+        function sendToServer(transcript) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'save_transcription.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send('transcription=' + encodeURIComponent(transcript));
+        }
+    </script>
+        
+        recognition.onresult = function (event) {
+            var interim_transcript = '';
+            for (var i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    var spokenText = event.results[i][0].transcript;
+                    transcriptParagraph.textContent = addPunctuation(spokenText);
+                    sendToServer(spokenText);
+                } else {
+                    interim_transcript += event.results[i][0].transcript;
+                    transcriptParagraph.textContent = addPunctuation(interim_transcript);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
