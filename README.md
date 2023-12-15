@@ -1,0 +1,1 @@
+This web-based application enables users, especially students in a classroom setting, to transcribe the spoken words of a teacher or lecturer in real-time. The application also includes a feature to store each transcription in a text file, facilitating easy retrieval of the transcription history.
